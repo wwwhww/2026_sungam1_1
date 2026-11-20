@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>친구의 마음을 알아보기 - 표정·몸짓·행동 꾸미기 스튜디오</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for 1st Graders -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        body {
+            font-family: 'Jua', sans-serif;
+            background: radial-gradient(circle at top, #FFF9DB 0%, #FFE3EC 48%, #E5DBFF 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #2b2338;
+        }
+        .font-body {
+            font-family: 'Gowun Dodum', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Animations */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        @keyframes bouncePop {
+            0% { transform: scale(0.8); opacity: 0; }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.6); }
+            50% { box-shadow: 0 0 0 14px rgba(244, 63, 94, 0); }
+        }
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-7px, 5px) rotate(-1.5deg); }
+            50% { transform: translate(7px, -5px) rotate(1.5deg); }
+            75% { transform: translate(-5px, -3px) rotate(-1deg); }
+        }
+        @keyframes flashShutter {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .animate-float { animation: floatSlow 3.2s ease-in-out infinite; }
+        .animate-pop { animation: bouncePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .animate-glow { animation: pulseGlow 1.8s infinite; }
+        .animate-shake { animation: screenShake 0.35s ease-in-out; }
+        .shutter-flash { animation: flashShutter 0.45s ease-out forwards; }
+
+        /* 3D Candy Buttons for Tablet Touch */
+        .btn-candy {
+            transition: transform 0.1s ease, border-bottom-width 0.1s ease, filter 0.15s ease;
+            border-bottom-width: 5px;
+        }
+        .btn-candy:hover { filter: brightness(1.04); }
+        .btn-candy:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+        }
+
+        /* Active Option Card Highlight */
+        .part-btn-active {
+            background: linear-gradient(180deg, #FFF0F6 0%, #FFD6E7 100%) !important;
+            border-color: #F43F5E !important;
+            box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.35);
+            transform: scale(1.03);
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #FFF5F5; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb { background: #FF85A1; border-radius: 9999px; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen relative">
+
+    <!-- Confetti Celebration Canvas -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+    <!-- Camera Flash Overlay -->
+    <div id="camera-flash" class="fixed inset-0 bg-white pointer-events-none z-50 hidden"></div>
+
+    <!-- Floating Decorative Background -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-60">
+        <div class="absolute top-12 left-6 text-5xl animate-float">☁️</div>
+        <div class="absolute top-16 right-10 text-5xl animate-float" style="animation-delay: 0.8s;">🌈</div>
+        <div class="absolute bottom-14 left-10 text-4xl animate-float" style="animation-delay: 1.5s;">🌸</div>
+        <div class="absolute bottom-20 right-8 text-5xl animate-float" style="animation-delay: 0.4s;">🎈</div>
+    </div>
+
+    <!-- Top Header Navigation (Hidden in Clean Screenshot Mode) -->
+    <header id="app-header" class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b-4 border-pink-300 px-3 py-2 shadow-md">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <!-- Brand / Home Button -->
+            <button onclick="stopMiniGame(); showScreen('home')" class="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-1.5 rounded-full border-pink-700 btn-candy shadow">
+                <span class="text-2xl">💖</span>
+                <span class="text-base sm:text-xl tracking-wide">우리 마음을 잇는 약속 · 친구 마음 꾸미기</span>
+            </button>
+
+            <!-- 5 Empathy Badges Progress -->
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-400 px-3 py-1 rounded-full shadow-inner">
+                    <span class="text-xs sm:text-sm text-amber-900">마음 보석:</span>
+                    <div id="header-gems" class="flex items-center gap-1 text-base sm:text-lg"></div>
+                    <span id="header-gem-count" class="text-xs sm:text-sm bg-amber-300 text-amber-950 px-2 py-0.5 rounded-full ml-1">0/5</span>
+                </div>
+                <button onclick="openMiniGameScreen()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white border-orange-700 px-3.5 py-1 rounded-full text-xs sm:text-sm btn-candy flex items-center gap-1 shadow">
+                    <span>🕹️</span>
+                    <span>마음 캐치 오락실</span>
+                    <span id="header-game-lock" class="bg-white text-orange-600 px-1.5 py-0.2 rounded-full text-xs">잠김🔒</span>
+                </button>
+            </div>
+
+            <!-- Audio, TTS & Teacher Controls -->
+            <div class="flex items-center gap-1.5">
+                <button id="btn-bgm-toggle" onclick="toggleBGM()" class="bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-400 px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center gap-1 btn-candy">
+                    <i class="fa-solid fa-music"></i>
+                    <span id="bgm-label">BGM 켜짐</span>
+                </button>
+                <button id="btn-tts-toggle" onclick="toggleTTS()" class="bg-sky-100 hover:bg-sky-200 text-sky-800 border-sky-400 px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center gap-1 btn-candy">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <span id="tts-label">읽어주기 켜짐</span>
+                </button>
+                <button id="btn-teacher" onclick="toggleTeacherMode()" class="bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-400 px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center gap-1 btn-candy">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span id="teacher-label">선생님 모드</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-5 z-10 flex flex-col justify-center">
+
+        <!-- ==========================================
+             SCREEN 1: HOME & 5 SITUATION SELECTOR
+             ========================================== -->
+        <section id="screen-home" class="space-y-5 animate-pop">
+            <!-- Hero Intro Card -->
+            <div class="bg-white/95 rounded-3xl p-5 sm:p-7 border-4 border-pink-300 shadow-2xl text-center relative overflow-hidden">
+                <div class="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-300 to-amber-300 text-amber-950 px-4 py-1 rounded-full text-sm sm:text-base mb-2 border-2 border-amber-400 shadow-xs">
+                    <span>🎨 1학년 마음교육 프로젝트 (3~4차시)</span>
+                    <span class="bg-white/85 px-2.5 py-0.5 rounded-full text-xs">친구의 마음을 어떻게 이해할까요?</span>
+                </div>
+                <h1 class="text-3xl sm:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-rose-500 to-indigo-600 drop-shadow-xs mb-2">
+                    친구의 마음을 알아보고 꾸며요!
+                </h1>
+                <p class="font-body text-base sm:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+                    친구가 처한 <strong>5가지 상황</strong>을 살펴보고, 친구의 <strong>표정(눈·입), 몸짓(포즈), 마음 행동 아이템</strong>을 직접 꾸며보세요!<br>
+                    멋지게 완성한 마음 카드는 <strong>📸 찰칵! 사진관 모드</strong>에서 캡처해 <strong>패들렛(Padlet)</strong>에 올려 친구들과 나누어요!
+                </p>
+
+                <!-- Preview Trio Characters -->
+                <div class="my-4 flex justify-center items-center gap-4 sm:gap-10">
+                    <div id="hero-char-left" class="w-24 h-24 sm:w-32 sm:h-32 animate-float"></div>
+                    <div class="flex flex-col items-center">
+                        <div class="text-4xl sm:text-5xl animate-bounce">🔍💖📸</div>
+                        <span class="text-xs sm:text-sm bg-pink-100 text-pink-800 px-3.5 py-1 rounded-full border-2 border-pink-300 mt-1 shadow-xs">
+                            마음 퀴즈 ➔ 표정·몸짓 꾸미기 ➔ 패들렛 찰칵!
+                        </span>
+                    </div>
+                    <div id="hero-char-right" class="w-24 h-24 sm:w-32 sm:h-32 animate-float" style="animation-delay: 0.7s;"></div>
+                </div>
+
+                <!-- Main CTA Buttons -->
+                <div class="flex flex-wrap justify-center gap-3 mt-2">
+                    <button onclick="openStudioForSituation(0)" class="bg-gradient-to-b from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white border-rose-700 text-xl sm:text-2xl px-7 py-3.5 rounded-2xl btn-candy animate-glow flex items-center gap-2 shadow-xl">
+                        <span>🎨</span>
+                        <span>1번 상황부터 꾸미기 출발!</span>
+                    </button>
+                    <button onclick="openMiniGameScreen()" class="bg-gradient-to-b from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white border-orange-700 text-xl sm:text-2xl px-7 py-3.5 rounded-2xl btn-candy flex items-center gap-2 shadow-xl">
+                        <span>🕹️</span>
+                        <span>스릴 만점! 마음 표정 캐치 게임</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5 Friend Situations Grid -->
+            <div class="bg-white/95 rounded-3xl p-5 sm:p-6 border-4 border-amber-300 shadow-xl">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <h2 class="text-2xl sm:text-3xl text-amber-950 flex items-center gap-2">
+                        <span>📖</span>
+                        <span>친구가 처한 5가지 상황 (상황을 골라 터치하세요!)</span>
+                    </h2>
+                    <span class="text-xs sm:text-sm bg-amber-100 text-amber-900 px-3.5 py-1 rounded-full border border-amber-300">
+                        💡 1개 이상 카드를 완성하면 보석💎을 얻고 스릴 미니게임이 열려요!
+                    </span>
+                </div>
+
+                <div id="situation-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             SCREEN 2: EMPATHY DRESS-UP & EXPRESSION STUDIO
+             ========================================== -->
+        <section id="screen-studio" class="hidden space-y-4 animate-pop">
+            <!-- Top Situation Story & Step Bar -->
+            <div class="bg-white/95 rounded-3xl p-4 sm:p-5 border-4 border-sky-300 shadow-xl">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span id="st-badge" class="bg-gradient-to-r from-sky-500 to-indigo-500 text-white px-4 py-1 rounded-full text-base sm:text-lg shadow">상황 1 / 5</span>
+                        <h2 id="st-title" class="text-xl sm:text-3xl text-sky-950">블록 성이 와르르 무너졌어요!</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="speakCurrentSituation()" class="bg-yellow-300 hover:bg-yellow-400 text-amber-950 border-yellow-500 px-3.5 py-1.5 rounded-full text-sm sm:text-base btn-candy flex items-center gap-1.5">
+                            <i class="fa-solid fa-ear-listen"></i>
+                            <span>상황 듣기</span>
+                        </button>
+                        <button onclick="showScreen('home')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300 px-3.5 py-1.5 rounded-full text-sm sm:text-base btn-candy">
+                            🏠 상황 목록
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Situation Description Banner -->
+                <div class="bg-gradient-to-r from-sky-50 via-indigo-50 to-pink-50 rounded-2xl p-3.5 sm:p-4 border-2 border-sky-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div id="st-icon" class="text-4xl sm:text-5xl bg-white p-3 rounded-2xl border-2 border-sky-200 shadow-xs shrink-0">🏰💥</div>
+                        <div>
+                            <div class="text-xs text-sky-700 mb-0.5">친구가 처한 상황 이야기</div>
+                            <p id="st-desc" class="font-body text-lg sm:text-xl text-gray-800 leading-snug"></p>
+                        </div>
+                    </div>
+                    <!-- Quick Switch Situation Pills -->
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="prevSituation()" class="bg-white hover:bg-sky-100 text-sky-800 border-2 border-sky-300 px-3 py-1.5 rounded-xl text-sm btn-candy">◀ 이전</button>
+                        <button onclick="nextSituation()" class="bg-white hover:bg-sky-100 text-sky-800 border-2 border-sky-300 px-3 py-1.5 rounded-xl text-sm btn-candy">다음 ▶</button>
+                    </div>
+                </div>
+
+                <!-- STEP 1: Mind Detective Emotion Quiz Bar -->
+                <div id="quiz-banner" class="mt-3 bg-gradient-to-r from-amber-50 to-yellow-100 rounded-2xl p-3.5 border-2 border-amber-300">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-amber-400 text-amber-950 text-xs sm:text-sm px-3 py-0.5 rounded-full">STEP 1 · 마음 탐정 퀴즈</span>
+                            <span id="quiz-question" class="text-base sm:text-lg text-amber-950">이 상황에서 친구의 마음은 어떨까요? 알맞은 마음 말을 골라보세요!</span>
+                        </div>
+                        <button onclick="applyRecommendedPreset()" class="bg-white hover:bg-pink-50 text-pink-600 border-2 border-pink-300 px-3 py-1 rounded-full text-xs sm:text-sm btn-candy">
+                            ✨ 상황에 딱 맞는 추천 표정 자동 입히기
+                        </button>
+                    </div>
+                    <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2 & 3: Main Studio Workspace (Left: Live Character Stage / Right: Customization Tabs) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+
+                <!-- LEFT (5 Cols): Live Character Canvas & Warm Message Preview -->
+                <div class="lg:col-span-5 bg-white/95 rounded-3xl p-4 sm:p-5 border-4 border-pink-300 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="bg-pink-100 text-pink-800 border border-pink-300 text-xs sm:text-sm px-3 py-0.5 rounded-full">
+                                🎨 내가 꾸미는 친구의 마음 모습
+                            </span>
+                            <button onclick="randomizeCharacter()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-300 text-xs sm:text-sm px-3 py-1 rounded-full btn-candy">
+                                🎲 깜짝 랜덤 꾸미기
+                            </button>
+                        </div>
+
+                        <!-- Live SVG Character Stage -->
+                        <div id="studio-stage-box" class="w-full aspect-square max-w-[330px] mx-auto rounded-3xl border-4 border-pink-200 shadow-inner relative overflow-hidden flex items-center justify-center">
+                            <div id="studio-svg-container" class="w-full h-full"></div>
+                        </div>
+
+                        <!-- Current Selected Emotion & Action Summary Pills -->
+                        <div class="flex flex-wrap justify-center gap-1.5 mt-3" id="studio-summary-pills"></div>
+                    </div>
+
+                    <!-- Live Speech Bubble Preview -->
+                    <div class="mt-3 bg-gradient-to-r from-rose-50 to-amber-50 rounded-2xl p-3.5 border-2 border-pink-300 relative">
+                        <div class="text-xs text-pink-700 mb-0.5 flex items-center justify-between">
+                            <span>💬 친구에게 건네는 나의 따뜻한 말 한마디</span>
+                            <button onclick="speakText(currentCustom.message)" class="text-pink-600 hover:text-pink-800 text-xs underline">🔊 들어보기</button>
+                        </div>
+                        <p id="studio-live-message" class="font-body text-lg sm:text-xl text-gray-900 leading-snug">
+                            "많이 속상했겠다! 내가 같이 다시 쌓아줄게!"
+                        </p>
+                    </div>
+
+                    <!-- Big Padlet Photo Studio Button -->
+                    <button onclick="openPhotoStudioModal()" class="mt-3 w-full bg-gradient-to-r from-emerald-400 via-teal-500 to-sky-500 hover:from-emerald-500 hover:to-sky-600 text-white border-teal-800 text-xl sm:text-2xl py-3.5 rounded-2xl btn-candy animate-glow shadow-xl flex items-center justify-center gap-2">
+                        <span>📸</span>
+                        <span>완성! 패들렛용 사진 찍기 (찰칵!)</span>
+                    </button>
+                </div>
+
+                <!-- RIGHT (7 Cols): STEP 2 & 3 Customization Tabs & Controls -->
+                <div class="lg:col-span-7 bg-white/95 rounded-3xl p-4 sm:p-5 border-4 border-indigo-300 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <span class="bg-indigo-100 text-indigo-900 border border-indigo-300 text-xs sm:text-sm px-3 py-0.5 rounded-full">
+                                STEP 2 & 3 · 표정 · 몸짓 · 행동 아이템 · 따뜻한 말 꾸미기
+                            </span>
+                            <span class="text-xs text-gray-500">아래 탭을 눌러 마음껏 꾸며보세요!</span>
+                        </div>
+
+                        <!-- 6 Category Tabs -->
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mb-4">
+                            <button onclick="switchStudioTab('species')" id="stab-species" class="py-2 px-2 rounded-2xl border-2 text-sm sm:text-base btn-candy flex flex-col items-center gap-0.5 bg-pink-500 text-white border-pink-700">
+                                <span class="text-xl">🐰</span><span>1. 친구</span>
+                            </button>
+                            <button onclick="switchStudioTab('eyes')" id="stab-eyes" class="py-2 px-2 rounded-2xl border-2 text-sm sm:text-base btn-candy flex flex-col items-center gap-0.5 bg-slate-50 text-gray-700 border-slate-300">
+                                <span class="text-xl">👀</span><span>2. 눈·눈썹</span>
+                            </button>
+                            <button onclick="switchStudioTab('mouth')" id="stab-mouth" class="py-2 px-2 rounded-2xl border-2 text-sm sm:text-base btn-candy flex flex-col items-center gap-0.5 bg-slate-50 text-gray-700 border-slate-300">
+                                <span class="text-xl">👄</span><span>3. 입모양</span>
+                            </button>
+                            <button onclick="switchStudioTab('pose')" id="stab-pose" class="py-2 px-2 rounded-2xl border-2 text-sm sm:text-base btn-candy flex flex-col items-center gap-0.5 bg-slate-50 text-gray-700 border-slate-300">
+                                <span class="text-xl">🙌</span><span>4. 몸짓</span>
+                            </button>
+                            <button onclick="switchStudioTab('item')" id="stab-item" class="py-2 px-2 rounded-2xl border-2 text-sm sm:text-base btn-candy flex flex-col items-center gap-0.5 bg-slate-50 text-gray-700 border-slate-300">
+                                <span class="text-xl">🎁</span><span>5. 행동소품</span>
+                            </button>
+                            <button onclick="switchStudioTab('message')" id="stab-message" class="py-2 px-2 rounded-2xl border-2 text-sm sm:text-base btn-candy flex flex-col items-center gap-0.5 bg-slate-50 text-gray-700 border-slate-300">
+                                <span class="text-xl">💬</span><span>6. 고운말</span>
+                            </button>
+                        </div>
+
+                        <!-- Options Panel Container -->
+                        <div id="studio-options-panel" class="min-h-[270px] bg-slate-50/90 rounded-2xl p-3.5 border-2 border-slate-200">
+                            <!-- Dynamically rendered by switchStudioTab() -->
+                        </div>
+                    </div>
+
+                    <!-- Student Info Bar for Padlet Card -->
+                    <div class="mt-4 bg-emerald-50 rounded-2xl p-3.5 border-2 border-emerald-300">
+                        <div class="text-xs sm:text-sm text-emerald-900 mb-2 flex items-center gap-1.5">
+                            <span>✏️</span>
+                            <span>패들렛 카드에 들어갈 내 학번과 이름을 적어보세요!</span>
+                        </div>
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                            <div class="flex items-center bg-white rounded-xl border-2 border-emerald-300 px-2.5 py-1.5">
+                                <input id="input-class" type="text" value="1" maxlength="2" oninput="syncStudentInfo()" class="w-full text-center text-lg focus:outline-none">
+                                <span class="text-sm text-gray-600 shrink-0">반</span>
+                            </div>
+                            <div class="flex items-center bg-white rounded-xl border-2 border-emerald-300 px-2.5 py-1.5">
+                                <input id="input-number" type="text" placeholder="번호" maxlength="2" oninput="syncStudentInfo()" class="w-full text-center text-lg focus:outline-none">
+                                <span class="text-sm text-gray-600 shrink-0">번</span>
+                            </div>
+                            <div class="col-span-1 sm:col-span-2 flex items-center bg-white rounded-xl border-2 border-emerald-300 px-3 py-1.5">
+                                <input id="input-name" type="text" placeholder="내 이름 (예: 김마음)" maxlength="10" oninput="syncStudentInfo()" class="w-full text-lg focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==========================================
+             SCREEN 3: PADLET PHOTO BOOTH & SCREENSHOT MODE
+             ========================================== -->
+        <section id="screen-photobooth" class="hidden space-y-4 animate-pop">
+            <!-- Top Control Bar (Can be hidden with 1 tap for full clean tablet screenshot) -->
+            <div id="photobooth-controls" class="bg-white/95 rounded-3xl p-4 border-4 border-emerald-400 shadow-lg flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-3xl">📸</span>
+                    <div>
+                        <h3 class="text-lg sm:text-2xl text-emerald-900 leading-tight">패들렛(Padlet) 업로드용 찰칵! 사진관</h3>
+                        <p class="font-body text-xs sm:text-sm text-gray-600">
+                            아래 <strong>[이미지 파일로 바로 저장]</strong>을 누르거나 <strong>[화면 깔끔하게 보기]</strong>를 눌러 태블릿으로 스크린샷을 찍으세요!
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="downloadPadletCardPNG()" class="bg-gradient-to-b from-emerald-400 to-teal-600 text-white border-teal-800 px-4 py-2.5 rounded-2xl text-base sm:text-lg btn-candy shadow-md flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i>
+                        <span>PNG 이미지로 바로 저장</span>
+                    </button>
+                    <button onclick="toggleCleanScreenshotMode(true)" class="bg-gradient-to-b from-amber-400 to-orange-500 text-white border-orange-700 px-4 py-2.5 rounded-2xl text-base sm:text-lg btn-candy shadow-md flex items-center gap-1.5">
+                        <i class="fa-solid fa-expand"></i>
+                        <span>스샷용 전체화면 보기</span>
+                    </button>
+                    <button onclick="showScreen('studio')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300 px-4 py-2.5 rounded-2xl text-base btn-candy">
+                        🎨 다시 꾸미기
+                    </button>
+                </div>
+            </div>
+
+            <!-- Floating Exit Button when in Clean Screenshot Mode -->
+            <div id="clean-mode-banner" class="hidden fixed top-3 right-3 z-50">
+                <button onclick="toggleCleanScreenshotMode(false)" class="bg-black/75 hover:bg-black text-white px-4 py-2 rounded-full text-sm shadow-lg flex items-center gap-1.5 border border-white/40">
+                    <i class="fa-solid fa-compress"></i>
+                    <span>스샷 찍기 완료 (메뉴 다시 보이기)</span>
+                </button>
+            </div>
+
+            <!-- THE PADLET CAPTURE CARD (Designed in a crisp 4:3 / 16:10 frame for tablet screenshots) -->
+            <div id="padlet-card-frame" class="max-w-3xl w-full mx-auto bg-gradient-to-br from-yellow-50 via-white to-pink-50 rounded-[36px] p-5 sm:p-8 border-[10px] border-double border-amber-400 shadow-2xl relative overflow-hidden">
+                <!-- Card Header Ribbon -->
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b-4 border-dashed border-pink-200 pb-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs sm:text-sm px-3.5 py-1 rounded-full shadow-xs">
+                            ★ 우리 마음을 잇는 약속 ★
+                        </span>
+                        <span id="card-sit-badge" class="bg-amber-200 text-amber-950 text-xs sm:text-sm px-3 py-1 rounded-full">
+                            상황 1 · 속상한 친구 마음 알아보기
+                        </span>
+                    </div>
+                    <div id="card-student-badge" class="bg-indigo-100 text-indigo-950 border-2 border-indigo-300 px-4 py-1 rounded-full text-base sm:text-lg">
+                        🏫 1학년 1반 멋진 친구
+                    </div>
+                </div>
+
+                <!-- Card Main Body: Left Character Artwork + Right Situation & Empathy Details -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                    <!-- Left: Framed Customized Character -->
+                    <div class="md:col-span-5 flex flex-col items-center">
+                        <div class="w-60 h-60 sm:w-64 sm:h-64 rounded-3xl border-4 border-pink-300 shadow-lg overflow-hidden bg-white relative">
+                            <div id="card-svg-holder" class="w-full h-full"></div>
+                        </div>
+                        <div id="card-char-caption" class="mt-2 text-sm sm:text-base bg-pink-100 text-pink-900 px-4 py-1 rounded-full border border-pink-300 shadow-2xs">
+                            내가 꾸민 토끼 루루의 모습
+                        </div>
+                    </div>
+
+                    <!-- Right: Situation, Detected Feeling, Expression Tags & Warm Message -->
+                    <div class="md:col-span-7 space-y-3.5 text-left">
+                        <div class="bg-sky-50 rounded-2xl p-3.5 border-2 border-sky-200">
+                            <div class="text-xs text-sky-700 mb-0.5">📖 친구가 처한 상황</div>
+                            <div id="card-sit-title" class="text-lg sm:text-xl text-sky-950 mb-0.5">블록 성이 와르르 무너졌어요!</div>
+                            <p id="card-sit-desc" class="font-body text-sm sm:text-base text-gray-700"></p>
+                        </div>
+
+                        <div class="bg-amber-50 rounded-2xl p-3.5 border-2 border-amber-300">
+                            <div class="text-xs text-amber-800 mb-1">🔍 내가 알아본 친구의 마음과 표현</div>
+                            <div id="card-tags-box" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-rose-50 to-pink-100 rounded-2xl p-4 border-2 border-pink-300 shadow-xs relative">
+                            <div class="text-xs text-rose-700 mb-1">💌 내가 친구에게 건네는 따뜻한 말과 행동</div>
+                            <p id="card-warm-message" class="font-body text-xl sm:text-2xl text-rose-950 leading-snug">
+                                "많이 속상했겠다! 내가 같이 다시 쌓아줄게!"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer Stamp -->
+                <div class="mt-4 pt-3 border-t-2 border-pink-100 flex flex-wrap items-center justify-between text-xs sm:text-sm text-gray-500">
+                    <span>💖 친구의 입장을 이해하고 따뜻한 말과 행동으로 마음을 이어요!</span>
+                    <span class="bg-rose-500 text-white px-3 py-0.5 rounded-full text-xs shadow">공감 박사 인증 💮</span>
+                </div>
+            </div>
+
+            <!-- Next Situation / Mini-game Quick Navigation -->
+            <div id="photobooth-bottom-nav" class="flex flex-wrap justify-center gap-3 pt-1">
+                <button onclick="goNextSituationFromBooth()" class="bg-gradient-to-b from-sky-400 to-indigo-500 text-white border-indigo-700 text-lg sm:text-xl px-6 py-3 rounded-2xl btn-candy shadow-lg">
+                    ➡️ 다음 친구 상황도 꾸며보기!
+                </button>
+                <button onclick="openMiniGameScreen()" class="bg-gradient-to-b from-amber-400 to-orange-500 text-white border-orange-700 text-lg sm:text-xl px-6 py-3 rounded-2xl btn-candy shadow-lg">
+                    🕹️ 보너스! 마음 표정 캐치 오락실 가기
+                </button>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             SCREEN 4: BONUS THRILLING MINI-GAME ('마음 표정 캐치! 대소동')
+             ========================================== -->
+        <section id="screen-minigame" class="hidden space-y-4 animate-pop">
+            <div class="bg-white/95 rounded-3xl p-4 sm:p-6 border-4 border-orange-400 shadow-2xl">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="bg-gradient-to-r from-rose-500 to-orange-500 text-white px-3 py-0.5 rounded-full text-xs sm:text-sm">
+                            ⚡ EMPATHY SPEED ARCADE ⚡
+                        </span>
+                        <h2 class="text-2xl sm:text-4xl text-orange-600 mt-0.5">
+                            🕹️ 스릴 만점! 친구 마음 캐치 대소동!
+                        </h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="stopMiniGame(); showScreen('studio')" class="bg-pink-100 hover:bg-pink-200 text-pink-800 border-pink-300 px-4 py-2 rounded-2xl text-sm sm:text-base btn-candy">
+                            🎨 꾸미기 스튜디오로
+                        </button>
+                        <button onclick="stopMiniGame(); showScreen('home')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300 px-4 py-2 rounded-2xl text-sm sm:text-base btn-candy">
+                            🏠 처음으로
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Arcade Arena -->
+                <div id="game-cabinet" class="bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-4 sm:p-5 border-4 border-indigo-400 shadow-2xl relative overflow-hidden">
+                    <!-- HUD Bar -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 mb-3 text-white">
+                        <div class="flex items-center gap-2">
+                            <span class="text-base sm:text-xl text-yellow-300">🎯 미션: 친구를 도와주는 따뜻한 행동만 빠르게 터치!</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3 text-sm sm:text-lg">
+                            <span class="bg-amber-400/20 border border-amber-300 px-3 py-0.5 rounded-full text-amber-300">
+                                ⚡ 콤보: <strong id="mg-combo">0</strong>
+                            </span>
+                            <span class="bg-emerald-400/20 border border-emerald-300 px-3.5 py-0.5 rounded-full text-emerald-300">
+                                ⭐ 점수: <strong id="mg-score">0</strong>
+                            </span>
+                            <span class="bg-sky-400/20 border border-sky-300 px-3.5 py-0.5 rounded-full text-sky-200">
+                                ⏰ 시간: <strong id="mg-timer">30</strong>초
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Current Friend Mission Prompt Banner -->
+                    <div id="mg-mission-bar" class="bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-white px-4 py-2.5 rounded-2xl mb-3 flex items-center justify-between shadow-lg border-2 border-yellow-200">
+                        <div class="flex items-center gap-3">
+                            <span id="mg-mission-icon" class="text-3xl sm:text-4xl bg-white/20 p-1.5 rounded-xl">🥛💦</span>
+                            <div>
+                                <div class="text-xs text-yellow-100">지금 친구에게 필요한 마음 표현은?</div>
+                                <div id="mg-mission-text" class="text-lg sm:text-2xl">우유를 쏟아 당황한 친구! ➔ 따뜻한 위로 아이템을 터치!</div>
+                            </div>
+                        </div>
+                        <span id="mg-fever-pill" class="hidden bg-yellow-300 text-amber-950 px-3 py-1 rounded-full text-xs sm:text-sm font-bold animate-bounce">
+                            🔥 FEVER 2배!!
+                        </span>
+                    </div>
+
+                    <!-- 3x3 Speed Catch Grid -->
+                    <div id="mg-grid" class="grid grid-cols-3 gap-2.5 sm:gap-4 max-w-xl mx-auto min-h-[320px] sm:min-h-[360px] bg-gradient-to-b from-indigo-900/60 to-slate-900/80 p-3 sm:p-4 rounded-2xl border-2 border-indigo-500/40">
+                        <!-- 9 Targets generated by JS -->
+                    </div>
+
+                    <!-- Start / End Overlay -->
+                    <div id="mg-overlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-6 text-center text-white">
+                        <div id="mg-ov-icon" class="text-6xl sm:text-7xl mb-2 animate-bounce">🕹️</div>
+                        <h3 id="mg-ov-title" class="text-3xl sm:text-5xl text-yellow-300 mb-2">친구 마음 캐치 대소동!</h3>
+                        <p id="mg-ov-desc" class="font-body text-base sm:text-xl max-w-lg mb-6 text-slate-200 leading-relaxed">
+                            구멍에서 쏙쏙 올라오는 카드 중에서<br>
+                            <strong>💖 친구를 위로하고 도와주는 행동(손수건, 반창고, 손 내밀기, 사과하기)</strong>은 빠르게 터치하고,<br>
+                            <strong>😈 친구를 속상하게 하는 나쁜 행동(놀리기, 새치기, 밀치기)</strong>은 피하세요!
+                        </p>
+                        <button onclick="startMiniGame()" class="bg-gradient-to-b from-yellow-300 via-amber-400 to-orange-500 text-amber-950 border-orange-700 text-2xl sm:text-3xl px-9 py-4 rounded-2xl btn-candy animate-glow shadow-2xl">
+                            🚀 게임 스타트!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Hidden High-Res Canvas for Exporting PNG for Padlet -->
+    <canvas id="export-canvas" width="1200" height="820" class="hidden"></canvas>
+
+    <!-- Footer -->
+    <footer id="app-footer" class="text-center py-3 text-xs sm:text-sm text-gray-600 z-10">
+        1학년 2학기 마음교육 프로젝트 『우리 마음을 잇는 약속』 - 친구의 마음 알아보고 표정·몸짓·행동 꾸미기 스튜디오
+    </footer>
+
+    <!-- ==========================================
+         JAVASCRIPT ENGINE
+         ========================================== -->
+    <script>
+        /* --------------------------------------------------
+           1. AUDIO SYNTHESIZER (SFX & BGM) & KOREAN TTS
+        -------------------------------------------------- */
+        let audioCtx = null;
+        let bgmEnabled = true;
+        let bgmInterval = null;
+        let bgmStep = 0;
+        let ttsEnabled = true;
+
+        function ensureAudio() {
+            if (!audioCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AC();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playSound(type, combo = 1) {
+            try {
+                ensureAudio();
+                const now = audioCtx.currentTime;
+                if (type === 'click') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(920, now + 0.06);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 0.06);
+                } else if (type === 'pop') {
+                    const base = Math.min(420 + combo * 35, 1100);
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(base, now);
+                    osc.frequency.exponentialRampToValueAtTime(base * 1.6, now + 0.1);
+                    gain.gain.setValueAtTime(0.24, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 0.1);
+                } else if (type === 'shutter') {
+                    // Camera shutter click sound
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(1200, now);
+                    osc.frequency.exponentialRampToValueAtTime(180, now + 0.08);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 0.08);
+                } else if (type === 'success') {
+                    const notes = [523.25, 659.25, 783.99, 1046.5];
+                    notes.forEach((f, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(f, now + i * 0.075);
+                        gain.gain.setValueAtTime(0.22, now + i * 0.075);
+                        gain.gain.exponentialRampToValueAtTime(0.008, now + i * 0.075 + 0.24);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.start(now + i * 0.075); osc.stop(now + i * 0.075 + 0.24);
+                    });
+                } else if (type === 'oops') {
+                    const notes = [280, 190];
+                    notes.forEach((f, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(f, now + i * 0.09);
+                        gain.gain.setValueAtTime(0.18, now + i * 0.09);
+                        gain.gain.exponentialRampToValueAtTime(0.008, now + i * 0.09 + 0.18);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.start(now + i * 0.09); osc.stop(now + i * 0.09 + 0.18);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        const BGM_NOTES = [523.25, 659.25, 783.99, 659.25, 880, 783.99, 659.25, 587.33];
+        function startBGM() {
+            stopBGM();
+            if (!bgmEnabled) return;
+            bgmStep = 0;
+            bgmInterval = setInterval(() => {
+                if (!bgmEnabled || !mgRunning) return;
+                try {
+                    ensureAudio();
+                    const now = audioCtx.currentTime;
+                    const freq = BGM_NOTES[bgmStep % BGM_NOTES.length];
+                    bgmStep++;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.045, now);
+                    gain.gain.exponentialRampToValueAtTime(0.004, now + 0.16);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now); osc.stop(now + 0.16);
+                } catch (e) {}
+            }, 190);
+        }
+
+        function stopBGM() {
+            if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
+        }
+
+        function toggleBGM() {
+            bgmEnabled = !bgmEnabled;
+            playSound('click');
+            document.getElementById('bgm-label').textContent = bgmEnabled ? 'BGM 켜짐' : 'BGM 꺼짐';
+            if (!bgmEnabled) stopBGM();
+        }
+
+        function speakText(text) {
+            if (!ttsEnabled || !('speechSynthesis' in window)) return;
+            try {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'ko-KR';
+                u.rate = 0.96;
+                u.pitch = 1.15;
+                window.speechSynthesis.speak(u);
+            } catch (e) {}
+        }
+
+        function toggleTTS() {
+            ttsEnabled = !ttsEnabled;
+            playSound('click');
+            document.getElementById('tts-label').textContent = ttsEnabled ? '읽어주기 켜짐' : '읽어주기 꺼짐';
+            if (!ttsEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
+        }
+
+        /* --------------------------------------------------
+           2. CONFETTI ENGINE
+        -------------------------------------------------- */
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let confettiPieces = [];
+        let confettiAnimId = null;
+
+        function launchConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+            const colors = ['#FF4D6D', '#FFD166', '#06D6A0', '#118AB2', '#9B5DE5', '#FF9F1C'];
+            for (let i = 0; i < 80; i++) {
+                confettiPieces.push({
+                    x: window.innerWidth / 2 + (Math.random() - 0.5) * 260,
+                    y: window.innerHeight / 2 - 50,
+                    vx: (Math.random() - 0.5) * 15,
+                    vy: -Math.random() * 14 - 4,
+                    size: 8 + Math.random() * 7,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * 360,
+                    vRot: (Math.random() - 0.5) * 12,
+                    life: 85 + Math.random() * 35
+                });
+            }
+            if (!confettiAnimId) animateConfetti();
+        }
+
+        function animateConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            for (let i = confettiPieces.length - 1; i >= 0; i--) {
+                const p = confettiPieces[i];
+                p.x += p.vx; p.y += p.vy; p.vy += 0.36; p.rot += p.vRot; p.life--;
+                confettiCtx.save();
+                confettiCtx.translate(p.x, p.y);
+                confettiCtx.rotate((p.rot * Math.PI) / 180);
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+                confettiCtx.restore();
+                if (p.life <= 0 || p.y > confettiCanvas.height + 20) confettiPieces.splice(i, 1);
+            }
+            if (confettiPieces.length > 0) confettiAnimId = requestAnimationFrame(animateConfetti);
+            else confettiAnimId = null;
+        }
+
+        /* --------------------------------------------------
+           3. CUSTOMIZATION PARTS CATALOG (SPECIES, EYES, MOUTH, POSE, ITEM)
+        -------------------------------------------------- */
+        const SPECIES_LIST = [
+            { id: 'bunny', name: '토끼 루루', icon: '🐰', main: '#FFFFFF', stroke: '#FF758F', earIn: '#FFB3C1', cheek: '#FF8FA3', muzzle: '#FFF0F3', shirt: '#FB7185' },
+            { id: 'bear', name: '곰돌이 포포', icon: '🐻', main: '#FFD166', stroke: '#B45309', earIn: '#FEF3C7', cheek: '#F59E0B', muzzle: '#FFFBEB', shirt: '#38BDF8' },
+            { id: 'dog', name: '강아지 뭉치', icon: '🐶', main: '#FDE68A', stroke: '#92400E', earIn: '#B45309', cheek: '#F87171', muzzle: '#FFFFFF', shirt: '#34D399' },
+            { id: 'cat', name: '고양이 나비', icon: '🐱', main: '#E9D5FF', stroke: '#7E22CE', earIn: '#F472B6', cheek: '#F472B6', muzzle: '#FAF5FF', shirt: '#A78BFA' },
+            { id: 'squirrel', name: '다람쥐 토리', icon: '🐿️', main: '#FDBA74', stroke: '#C2410C', earIn: '#FFEDD5', cheek: '#FB7185', muzzle: '#FFF7ED', shirt: '#FBBF24' }
+        ];
+
+        const EYES_LIST = [
+            { id: 'teary', name: '눈물 글썽 눈', icon: '😢', tag: '속상하고 슬픈 눈빛' },
+            { id: 'shy', name: '부끄러운 눈', icon: '🥺', tag: '망설이는 조심스러운 눈빛' },
+            { id: 'surprised', name: '깜짝 당황 눈', icon: '😳', tag: '놀라고 당황한 눈빛' },
+            { id: 'angry', name: '화난 찌푸린 눈', icon: '😠', tag: '화가 나고 억울한 눈빛' },
+            { id: 'happy', name: '웃는 반달 눈', icon: '😊', tag: '기쁘고 고마운 반달 눈웃음' },
+            { id: 'sparkle', name: '초롱초롱 눈', icon: '🤩', tag: '감동받은 반짝이는 눈빛' }
+        ];
+
+        const MOUTH_LIST = [
+            { id: 'sad', name: '시무룩 입', icon: '☹️', tag: '시무룩 내려간 입꼬리' },
+            { id: 'wobble', name: '울먹울먹 입', icon: '😖', tag: '울먹이는 입모양' },
+            { id: 'open_shock', name: '깜짝 동그란 입', icon: '😮', tag: '깜짝 놀라 벌어진 입' },
+            { id: 'pout', name: '삐죽 억울한 입', icon: '😤', tag: '삐죽거리는 입모양' },
+            { id: 'smile', name: '방긋 미소 입', icon: '🙂', tag: '마음이 풀린 미소' },
+            { id: 'big_laugh', name: '활짝 행복한 입', icon: '😄', tag: '활짝 웃는 행복한 입' }
+        ];
+
+        const POSE_LIST = [
+            { id: 'droop', name: '어깨 축 늘어뜨리기', icon: '🙇', tag: '어깨가 축 처진 몸짓' },
+            { id: 'shy_hands', name: '손가락 만지작', icon: '👉👈', tag: '부끄러워 손 모은 몸짓' },
+            { id: 'head_hands', name: '머리에 두 손 깜짝!', icon: '🙆', tag: '당황해 머리 감싼 몸짓' },
+            { id: 'hips', name: '허리에 손 얹기', icon: '😤', tag: '억울해 허리에 손 얹은 몸짓' },
+            { id: 'reach_out', name: '따뜻하게 손 내밀기', icon: '🤝', tag: '먼저 다가와 손 내미는 행동' },
+            { id: 'hooray', name: '두 팔 벌려 만세!', icon: '🙌', tag: '기뻐서 만세 하는 몸짓' }
+        ];
+
+        const ITEM_LIST = [
+            { id: 'teardrop', name: '주르륵 눈물방울', icon: '💧', tag: '눈물방울 뚝뚝' },
+            { id: 'sweat', name: '식은땀 뻘뻘', icon: '💦', tag: '당황한 식은땀' },
+            { id: 'anger_mark', name: '화남 빠직 기호', icon: '💢', tag: '화남 뭉게구름' },
+            { id: 'tissue', name: '휴지·손수건 건네기', icon: '🧻', tag: '닦아주는 손수건 선물' },
+            { id: 'bandaid', name: '사랑의 반창고', icon: '🩹', tag: '아픈 곳 치료 반창고' },
+            { id: 'apple_heart', name: '고운 사과와 하트', icon: '🍎💖', tag: '마음을 잇는 사과와 하트' },
+            { id: 'together_blocks', name: '함께 블록 쌓기', icon: '🧱✨', tag: '같이 다시 쌓는 블록' },
+            { id: 'rainbow_star', name: '고마움 무지개 별', icon: '🌈🌟', tag: '반짝이는 우정 무지개' }
+        ];
+
+        /* --------------------------------------------------
+           4. 5 CORE SITUATIONS DATA (친구가 처한 5가지 상황)
+        -------------------------------------------------- */
+        const SITUATIONS = [
+            {
+                id: 1,
+                shortTitle: "블록 성이 무너졌어요",
+                title: "정성껏 쌓은 블록 성이 와르르 무너졌어요!",
+                emotionCategory: "속상함 · 슬픔",
+                icon: "🏰💥",
+                bgColors: ['#E0F2FE', '#BAE6FD'],
+                desc: "쉬는 시간 내내 열심히 만든 친구의 블록 성이 다른 친구의 실수로 와르르 무너져 버렸어요.",
+                quizQuestion: "열심히 만든 블록 성이 무너졌을 때, 친구의 마음은 어떨까요?",
+                quizChoices: [
+                    { text: "😢 너무 속상하고 눈물이 날 것 같아요", correct: true },
+                    { text: "😆 신나고 춤추고 싶어요", correct: false },
+                    { text: "😴 졸리고 심심해요", correct: false }
+                ],
+                recommended: {
+                    species: 'bunny',
+                    eyes: 'teary',
+                    mouth: 'sad',
+                    pose: 'droop',
+                    item: 'together_blocks',
+                    message: "많이 속상했겠다! 내가 같이 더 멋지게 다시 쌓아줄게!"
+                },
+                presetMessages: [
+                    "많이 속상했겠다! 내가 같이 더 멋지게 다시 쌓아줄게!",
+                    "실수로 무너뜨려서 정말 미안해. 함께 정리하고 다시 만들자!",
+                    "열심히 만들었는데 무너져서 마음이 아프지? 내가 도와줄게!"
+                ]
+            },
+            {
+                id: 2,
+                shortTitle: "혼자 서 있는 친구",
+                title: "놀고 싶은데 말 못 하고 혼자 서 있어요!",
+                emotionCategory: "외로움 · 부끄러움",
+                icon: "🌱👉👈",
+                bgColors: ['#F3E8FF', '#E9D5FF'],
+                desc: "쉬는 시간에 친구들과 같이 술래잡기를 하고 싶은데, 부끄러워서 '같이 놀자'고 말 못 하고 구석에 혼자 서 있어요.",
+                quizQuestion: "끼고 싶지만 혼자 우두커니 서 있는 친구의 마음은 어떨까요?",
+                quizChoices: [
+                    { text: "🥺 외롭고 누군가 먼저 손 내밀어 주면 좋겠어요", correct: true },
+                    { text: "😠 친구들이 다 미워서 화가 나요", correct: false },
+                    { text: "🥳 혼자 서 있는 게 제일 신나요", correct: false }
+                ],
+                recommended: {
+                    species: 'cat',
+                    eyes: 'shy',
+                    mouth: 'wobble',
+                    pose: 'shy_hands',
+                    item: 'apple_heart',
+                    message: "나비야, 거기서 혼자 뭐 해? 우리랑 같이 재미있게 놀자! 손잡아!"
+                },
+                presetMessages: [
+                    "나비야, 거기서 혼자 뭐 해? 우리랑 같이 재미있게 놀자! 손잡아!",
+                    "부끄러워하지 않아도 괜찮아! 내가 짝꿍 해줄게, 이리 와!",
+                    "네가 같이 놀면 훨씬 더 재미있을 거야! 같이 출발하자!"
+                ]
+            },
+            {
+                id: 3,
+                shortTitle: "우유를 쏟았어요",
+                title: "실수로 우유를 쏟아 옷과 바닥이 젖었어요!",
+                emotionCategory: "당황 · 걱정",
+                icon: "🥛💦",
+                bgColors: ['#FEF3C7', '#FDE68A'],
+                desc: "우유 마시는 시간에 실수로 우유갑을 놓쳐서 옷과 책상 바닥에 우유가 콸콸 쏟아졌어요! 얼굴이 새빨개졌어요.",
+                quizQuestion: "실수로 우유를 쏟아 옷이 젖은 친구의 마음은 어떨까요?",
+                quizChoices: [
+                    { text: "😳 너무 깜짝 놀라고 창피해서 어쩔 줄 모르겠어요", correct: true },
+                    { text: "😎 자랑스럽고 뿌듯해요", correct: false },
+                    { text: "🥱 아무렇지도 않고 심심해요", correct: false }
+                ],
+                recommended: {
+                    species: 'bear',
+                    eyes: 'surprised',
+                    mouth: 'open_shock',
+                    pose: 'head_hands',
+                    item: 'tissue',
+                    message: "괜찮아? 많이 놀랐지! 내가 휴지랑 걸레 가져와서 같이 닦아줄게!"
+                },
+                presetMessages: [
+                    "괜찮아? 많이 놀랐지! 내가 휴지랑 걸레 가져와서 같이 닦아줄게!",
+                    "누구나 실수할 수 있어! 창피해하지 마, 금방 닦으면 돼!",
+                    "옷이 젖어서 차갑겠다! 선생님께 말씀드리고 같이 정리하자!"
+                ]
+            },
+            {
+                id: 4,
+                shortTitle: "새치기 때문에 화나요",
+                title: "차례대로 줄 섰는데 친구가 새치기를 했어요!",
+                emotionCategory: "화남 · 억울함",
+                icon: "🍩😤",
+                bgColors: ['#FFE4E6', '#FECDD3'],
+                desc: "맛있는 간식을 받으려고 약속대로 줄을 서서 기다리고 있는데, 다른 친구가 내 앞으로 쏙 새치기를 했어요!",
+                quizQuestion: "기다리고 있는데 갑자기 새치기를 당한 친구의 마음은 어떨까요?",
+                quizChoices: [
+                    { text: "😠 약속을 어겨서 화가 나고 억울해요", correct: true },
+                    { text: "🥰 고맙고 기분이 날아갈 것 같아요", correct: false },
+                    { text: "😨 무서워서 도망가고 싶어요", correct: false }
+                ],
+                recommended: {
+                    species: 'dog',
+                    eyes: 'angry',
+                    mouth: 'pout',
+                    pose: 'hips',
+                    item: 'anger_mark',
+                    message: "새치기해서 미안해! 네가 기다리느라 힘들었을 텐데 내가 뒤로 가서 줄 설게!"
+                },
+                presetMessages: [
+                    "새치기해서 미안해! 네가 기다리느라 힘들었을 텐데 내가 뒤로 가서 줄 설게!",
+                    "우리 모두 차례대로 기다리고 있어. 약속과 순서를 함께 지켜주자!",
+                    "화가 났겠다. 앞으로는 먼저 물어보고 차례를 꼭 지킬게!"
+                ]
+            },
+            {
+                id: 5,
+                shortTitle: "도와줘서 고마워요",
+                title: "넘어졌을 때 일으켜주고 보건실에 같이 가줬어요!",
+                emotionCategory: "기쁨 · 고마움",
+                icon: "🩹💖",
+                bgColors: ['#D1FAE5', '#A7F3D0'],
+                desc: "운동장에서 뛰다가 넘어져 무릎이 따가웠는데, 친구가 먼지를 털어주고 손을 잡아 보건실까지 함께 가주었어요.",
+                quizQuestion: "친구가 따뜻하게 도와주었을 때의 마음은 어떨까요?",
+                quizChoices: [
+                    { text: "😊 마음이 든든하고 정말 고마워서 행복해요", correct: true },
+                    { text: "😡 더 화가 나고 짜증이 나요", correct: false },
+                    { text: "😢 외롭고 슬퍼요", correct: false }
+                ],
+                recommended: {
+                    species: 'squirrel',
+                    eyes: 'happy',
+                    mouth: 'big_laugh',
+                    pose: 'hooray',
+                    item: 'bandaid',
+                    message: "아픈 나를 그냥 지나치지 않고 따뜻하게 도와줘서 정말 고마워! 사랑해!"
+                },
+                presetMessages: [
+                    "아픈 나를 그냥 지나치지 않고 따뜻하게 도와줘서 정말 고마워! 사랑해!",
+                    "네가 손잡아 준 덕분에 무릎이 하나도 안 아파! 다음엔 내가 도와줄게!",
+                    "너는 세상에서 제일 다정한 내 단짝 친구야! 정말 고마워!"
+                ]
+            }
+        ];
+
+        /* --------------------------------------------------
+           5. STATE & EXPRESSIVE FULL-BODY SVG CHARACTER RENDERER
+        -------------------------------------------------- */
+        let currentSituationIdx = 0;
+        let completedSituations = [false, false, false, false, false];
+        let quizSolvedForCurrent = false;
+        let teacherMode = false;
+        let currentStudioTab = 'species';
+
+        let studentInfo = {
+            classNum: '1',
+            studentNum: '',
+            studentName: ''
+        };
+
+        let currentCustom = {
+            species: 'bunny',
+            eyes: 'teary',
+            mouth: 'sad',
+            pose: 'droop',
+            item: 'together_blocks',
+            message: "많이 속상했겠다! 내가 같이 더 멋지게 다시 쌓아줄게!"
+        };
+
+        function getCompletedCount() {
+            if (teacherMode) return 5;
+            return completedSituations.filter(Boolean).length;
+        }
+
+        function findPart(list, id) {
+            return list.find(x => x.id === id) || list[0];
+        }
+
+        // Generates a rich, full-body expressive SVG character (Head + Ears + Face + Body + Pose Arms + Empathy Props)
+        function generateFullCharacterSVG(custom, sitIdx = currentSituationIdx) {
+            const sp = findPart(SPECIES_LIST, custom.species);
+            const sit = SITUATIONS[sitIdx] || SITUATIONS[0];
+            const [bgTop, bgBot] = sit.bgColors;
+
+            // 1. Ears SVG
+            let earsSVG = '';
+            if (sp.id === 'bunny') {
+                earsSVG = `
+                    <ellipse cx="110" cy="48" rx="16" ry="38" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="5" transform="rotate(-10 110 48)"/>
+                    <ellipse cx="110" cy="48" rx="8" ry="26" fill="${sp.earIn}" transform="rotate(-10 110 48)"/>
+                    <ellipse cx="190" cy="48" rx="16" ry="38" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="5" transform="rotate(10 190 48)"/>
+                    <ellipse cx="190" cy="48" rx="8" ry="26" fill="${sp.earIn}" transform="rotate(10 190 48)"/>
+                `;
+            } else if (sp.id === 'cat') {
+                earsSVG = `
+                    <polygon points="82,92 92,38 134,68" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="5" stroke-linejoin="round"/>
+                    <polygon points="92,82 97,49 124,69" fill="${sp.earIn}"/>
+                    <polygon points="218,92 208,38 166,68" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="5" stroke-linejoin="round"/>
+                    <polygon points="208,82 203,49 176,69" fill="${sp.earIn}"/>
+                `;
+            } else if (sp.id === 'dog') {
+                earsSVG = `
+                    <ellipse cx="78" cy="115" rx="16" ry="34" fill="${sp.earIn}" stroke="${sp.stroke}" stroke-width="5" transform="rotate(16 78 115)"/>
+                    <ellipse cx="222" cy="115" rx="16" ry="34" fill="${sp.earIn}" stroke="${sp.stroke}" stroke-width="5" transform="rotate(-16 222 115)"/>
+                `;
+            } else {
+                // bear & squirrel
+                earsSVG = `
+                    <circle cx="95" cy="70" r="22" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="5"/>
+                    <circle cx="95" cy="70" r="11" fill="${sp.earIn}"/>
+                    <circle cx="205" cy="70" r="22" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="5"/>
+                    <circle cx="205" cy="70" r="11" fill="${sp.earIn}"/>
+                `;
+            }
+
+            // 2. Body & Arms (Pose) SVG
+            let bodyAndArmsSVG = '';
+            const bodyBase = `
+                <path d="M 102 182 Q 150 168 198 182 L 212 262 Q 150 274 88 262 Z" fill="${sp.shirt}" stroke="#2b2338" stroke-width="4.5" stroke-linejoin="round"/>
+                <circle cx="150" cy="218" r="16" fill="#FFF" opacity="0.85"/>
+                <text x="150" y="224" font-size="18" text-anchor="middle">💖</text>
+                <ellipse cx="122" cy="268" rx="18" ry="11" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="4"/>
+                <ellipse cx="178" cy="268" rx="18" ry="11" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="4"/>
+            `;
+
+            if (custom.pose === 'droop') {
+                bodyAndArmsSVG = bodyBase + `
+                    <path d="M 102 190 Q 78 220 84 248" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <path d="M 102 190 Q 78 220 84 248" fill="none" stroke="${sp.stroke}" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M 198 190 Q 222 220 216 248" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <path d="M 198 190 Q 222 220 216 248" fill="none" stroke="${sp.stroke}" stroke-width="4" stroke-linecap="round"/>
+                `;
+            } else if (custom.pose === 'shy_hands') {
+                bodyAndArmsSVG = bodyBase + `
+                    <path d="M 102 192 Q 115 225 138 226" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <path d="M 198 192 Q 185 225 162 226" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <circle cx="138" cy="226" r="10" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                    <circle cx="162" cy="226" r="10" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                `;
+            } else if (custom.pose === 'head_hands') {
+                bodyAndArmsSVG = bodyBase + `
+                    <path d="M 100 190 Q 62 140 94 95" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <circle cx="94" cy="95" r="10" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                    <path d="M 200 190 Q 238 140 206 95" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <circle cx="206" cy="95" r="10" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                `;
+            } else if (custom.pose === 'hips') {
+                bodyAndArmsSVG = bodyBase + `
+                    <path d="M 102 190 L 70 215 L 98 236" fill="none" stroke="${sp.main}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M 198 190 L 230 215 L 202 236" fill="none" stroke="${sp.main}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="98" cy="236" r="9" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                    <circle cx="202" cy="236" r="9" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                `;
+            } else if (custom.pose === 'reach_out') {
+                bodyAndArmsSVG = bodyBase + `
+                    <path d="M 102 192 Q 68 188 52 170" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <circle cx="52" cy="170" r="11" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                    <path d="M 198 192 Q 232 188 248 170" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <circle cx="248" cy="170" r="11" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                `;
+            } else {
+                // hooray
+                bodyAndArmsSVG = bodyBase + `
+                    <path d="M 102 190 Q 68 145 64 112" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <circle cx="64" cy="112" r="11" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                    <path d="M 198 190 Q 232 145 236 112" fill="none" stroke="${sp.main}" stroke-width="18" stroke-linecap="round"/>
+                    <circle cx="236" cy="112" r="11" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="3.5"/>
+                `;
+            }
+
+            // 3. Eyes & Eyebrows SVG
+            let eyesSVG = '';
+            if (custom.eyes === 'teary') {
+                eyesSVG = `
+                    <line x1="108" y1="102" x2="132" y2="94" stroke="#1E3A8A" stroke-width="4.5" stroke-linecap="round"/>
+                    <line x1="192" y1="102" x2="168" y2="94" stroke="#1E3A8A" stroke-width="4.5" stroke-linecap="round"/>
+                    <circle cx="122" cy="114" r="9.5" fill="#2b2338"/>
+                    <circle cx="178" cy="114" r="9.5" fill="#2b2338"/>
+                    <circle cx="119" cy="110" r="3.5" fill="#FFF"/>
+                    <circle cx="175" cy="110" r="3.5" fill="#FFF"/>
+                    <ellipse cx="112" cy="127" rx="5.5" ry="9" fill="#38BDF8"/>
+                    <ellipse cx="188" cy="127" rx="5.5" ry="9" fill="#38BDF8"/>
+                `;
+            } else if (custom.eyes === 'shy') {
+                eyesSVG = `
+                    <line x1="110" y1="98" x2="132" y2="93" stroke="#6B21A8" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="190" y1="98" x2="168" y2="93" stroke="#6B21A8" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="122" cy="114" r="8.5" fill="#2b2338"/>
+                    <circle cx="178" cy="114" r="8.5" fill="#2b2338"/>
+                    <circle cx="125" cy="111" r="3.5" fill="#FFF"/>
+                    <circle cx="181" cy="111" r="3.5" fill="#FFF"/>
+                    <line x1="105" y1="126" x2="115" y2="122" stroke="#F43F5E" stroke-width="2.5"/>
+                    <line x1="185" y1="126" x2="195" y2="122" stroke="#F43F5E" stroke-width="2.5"/>
+                `;
+            } else if (custom.eyes === 'surprised') {
+                eyesSVG = `
+                    <path d="M 110 92 Q 122 82 134 92" fill="none" stroke="#2b2338" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M 166 92 Q 178 82 190 92" fill="none" stroke="#2b2338" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="122" cy="113" r="11" fill="#FFF" stroke="#2b2338" stroke-width="4"/>
+                    <circle cx="178" cy="113" r="11" fill="#FFF" stroke="#2b2338" stroke-width="4"/>
+                    <circle cx="122" cy="113" r="5" fill="#2b2338"/>
+                    <circle cx="178" cy="113" r="5" fill="#2b2338"/>
+                `;
+            } else if (custom.eyes === 'angry') {
+                eyesSVG = `
+                    <line x1="108" y1="92" x2="135" y2="104" stroke="#991B1B" stroke-width="5.5" stroke-linecap="round"/>
+                    <line x1="192" y1="92" x2="165" y2="104" stroke="#991B1B" stroke-width="5.5" stroke-linecap="round"/>
+                    <circle cx="122" cy="115" r="8.5" fill="#2b2338"/>
+                    <circle cx="178" cy="115" r="8.5" fill="#2b2338"/>
+                    <circle cx="120" cy="112" r="2.8" fill="#FFF"/>
+                    <circle cx="176" cy="112" r="2.8" fill="#FFF"/>
+                `;
+            } else if (custom.eyes === 'happy') {
+                eyesSVG = `
+                    <path d="M 110 114 Q 122 98 134 114" fill="none" stroke="#2b2338" stroke-width="5.5" stroke-linecap="round"/>
+                    <path d="M 166 114 Q 178 98 190 114" fill="none" stroke="#2b2338" stroke-width="5.5" stroke-linecap="round"/>
+                `;
+            } else {
+                // sparkle
+                eyesSVG = `
+                    <circle cx="122" cy="113" r="10.5" fill="#2b2338"/>
+                    <circle cx="178" cy="113" r="10.5" fill="#2b2338"/>
+                    <circle cx="118" cy="109" r="4.2" fill="#FFF"/>
+                    <circle cx="174" cy="109" r="4.2" fill="#FFF"/>
+                    <circle cx="126" cy="117" r="2.2" fill="#FDE047"/>
+                    <circle cx="182" cy="117" r="2.2" fill="#FDE047"/>
+                `;
+            }
+
+            // 4. Mouth SVG
+            let mouthSVG = '';
+            if (custom.mouth === 'sad') {
+                mouthSVG = `<path d="M 134 146 Q 150 132 166 146" fill="none" stroke="#2b2338" stroke-width="4.5" stroke-linecap="round"/>`;
+            } else if (custom.mouth === 'wobble') {
+                mouthSVG = `<path d="M 132 143 Q 141 136 150 143 Q 159 150 168 143" fill="none" stroke="#2b2338" stroke-width="4.5" stroke-linecap="round"/>`;
+            } else if (custom.mouth === 'open_shock') {
+                mouthSVG = `<ellipse cx="150" cy="143" rx="10" ry="12" fill="#FF4D6D" stroke="#2b2338" stroke-width="4"/>`;
+            } else if (custom.mouth === 'pout') {
+                mouthSVG = `<path d="M 136 144 Q 150 137 164 142" fill="none" stroke="#991B1B" stroke-width="5" stroke-linecap="round"/>`;
+            } else if (custom.mouth === 'smile') {
+                mouthSVG = `<path d="M 134 138 Q 150 152 166 138" fill="none" stroke="#2b2338" stroke-width="4.5" stroke-linecap="round"/>`;
+            } else {
+                // big_laugh
+                mouthSVG = `<path d="M 130 136 Q 150 160 170 136 Z" fill="#FF4D6D" stroke="#2b2338" stroke-width="4" stroke-linejoin="round"/>`;
+            }
+
+            // 5. Empathy Item / Effect Sticker SVG
+            let itemSVG = '';
+            if (custom.item === 'teardrop') {
+                itemSVG = `
+                    <text x="42" y="75" font-size="34">💧</text>
+                    <text x="236" y="85" font-size="30">😢</text>
+                `;
+            } else if (custom.item === 'sweat') {
+                itemSVG = `
+                    <text x="225" y="70" font-size="38">💦</text>
+                    <text x="40" y="95" font-size="30">🥛</text>
+                `;
+            } else if (custom.item === 'anger_mark') {
+                itemSVG = `
+                    <text x="218" y="68" font-size="38">💢</text>
+                    <text x="42" y="78" font-size="34">😤</text>
+                `;
+            } else if (custom.item === 'tissue') {
+                itemSVG = `
+                    <g transform="translate(212, 168)">
+                        <rect x="0" y="0" width="66" height="50" rx="12" fill="#FFFFFF" stroke="#38BDF8" stroke-width="4"/>
+                        <text x="33" y="35" font-size="30" text-anchor="middle">🧻</text>
+                    </g>
+                    <text x="42" y="72" font-size="32">✨</text>
+                `;
+            } else if (custom.item === 'bandaid') {
+                itemSVG = `
+                    <text x="195" y="132" font-size="26">🩹</text>
+                    <text x="222" y="72" font-size="36">💖</text>
+                    <text x="42" y="78" font-size="32">🏥</text>
+                `;
+            } else if (custom.item === 'apple_heart') {
+                itemSVG = `
+                    <text x="38" y="75" font-size="36">💖</text>
+                    <text x="225" y="75" font-size="36">🍎</text>
+                    <text x="225" y="210" font-size="34">🤝</text>
+                `;
+            } else if (custom.item === 'together_blocks') {
+                itemSVG = `
+                    <text x="38" y="235" font-size="38">🏰</text>
+                    <text x="224" y="235" font-size="36">🧱</text>
+                    <text x="222" y="72" font-size="34">✨</text>
+                `;
+            } else {
+                // rainbow_star
+                itemSVG = `
+                    <text x="36" y="72" font-size="38">🌈</text>
+                    <text x="225" y="72" font-size="38">🌟</text>
+                    <text x="228" y="215" font-size="32">💖</text>
+                `;
+            }
+
+            return `
+            <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" class="w-full h-full select-none">
+                <defs>
+                    <linearGradient id="stageGrad_${sit.id}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${bgTop}"/>
+                        <stop offset="100%" stop-color="${bgBot}"/>
+                    </linearGradient>
+                </defs>
+                <!-- Background -->
+                <rect width="300" height="300" fill="url(#stageGrad_${sit.id})"/>
+                <circle cx="150" cy="272" r="95" fill="#FFFFFF" opacity="0.55"/>
+
+                <!-- Ears -->
+                ${earsSVG}
+
+                <!-- Body & Pose Arms -->
+                ${bodyAndArmsSVG}
+
+                <!-- Head Circle -->
+                <circle cx="150" cy="118" r="60" fill="${sp.main}" stroke="${sp.stroke}" stroke-width="5"/>
+                <!-- Muzzle & Nose -->
+                <ellipse cx="150" cy="134" rx="24" ry="17" fill="${sp.muzzle}"/>
+                <ellipse cx="104" cy="126" rx="11" ry="6.5" fill="${sp.cheek}" opacity="0.75"/>
+                <ellipse cx="196" cy="126" rx="11" ry="6.5" fill="${sp.cheek}" opacity="0.75"/>
+                <ellipse cx="150" cy="123" rx="7.5" ry="5.5" fill="#3b2820"/>
+
+                <!-- Eyes & Brows -->
+                ${eyesSVG}
+
+                <!-- Mouth -->
+                ${mouthSVG}
+
+                <!-- Empathy Sticker / Action Prop -->
+                ${itemSVG}
+            </svg>`;
+        }
+
+        /* --------------------------------------------------
+           6. NAVIGATION & HOME SCREEN RENDERING
+        -------------------------------------------------- */
+        function showScreen(name) {
+            playSound('click');
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            ['home', 'studio', 'photobooth', 'minigame'].forEach(s => {
+                document.getElementById('screen-' + s).classList.add('hidden');
+            });
+            document.getElementById('screen-' + name).classList.remove('hidden');
+            renderHeaderProgress();
+            if (name === 'home') renderHomeSituationCards();
+        }
+
+        function toggleTeacherMode() {
+            teacherMode = !teacherMode;
+            playSound('success');
+            const btn = document.getElementById('btn-teacher');
+            const label = document.getElementById('teacher-label');
+            if (teacherMode) {
+                label.textContent = '선생님 프리패스 켜짐';
+                btn.className = 'bg-purple-600 text-white border-purple-800 px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center gap-1 btn-candy shadow';
+                speakText('선생님 프리패스 모드가 켜졌어요!');
+            } else {
+                label.textContent = '선생님 모드';
+                btn.className = 'bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-400 px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center gap-1 btn-candy';
+            }
+            renderHeaderProgress();
+            renderHomeSituationCards();
+        }
+
+        function renderHeaderProgress() {
+            const count = getCompletedCount();
+            const gemsBox = document.getElementById('header-gems');
+            gemsBox.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const done = teacherMode || completedSituations[i];
+                const span = document.createElement('span');
+                span.textContent = done ? '💎' : '⚪';
+                gemsBox.appendChild(span);
+            }
+            document.getElementById('header-gem-count').textContent = `${count}/5`;
+
+            const lockBadge = document.getElementById('header-game-lock');
+            if (count >= 1) {
+                lockBadge.textContent = '열림!🔥';
+                lockBadge.className = 'bg-yellow-300 text-amber-950 px-2 py-0.5 rounded-full text-xs font-bold';
+            } else {
+                lockBadge.textContent = '잠김🔒';
+                lockBadge.className = 'bg-white text-orange-600 px-1.5 py-0.5 rounded-full text-xs';
+            }
+        }
+
+        function renderHomeSituationCards() {
+            const grid = document.getElementById('situation-cards-grid');
+            grid.innerHTML = '';
+            const cardThemes = [
+                'from-sky-50 to-blue-100 border-sky-300',
+                'from-purple-50 to-fuchsia-100 border-purple-300',
+                'from-amber-50 to-yellow-100 border-amber-300',
+                'from-rose-50 to-pink-100 border-rose-300',
+                'from-emerald-50 to-teal-100 border-emerald-300'
+            ];
+
+            SITUATIONS.forEach((sit, idx) => {
+                const done = completedSituations[idx];
+                const card = document.createElement('button');
+                card.onclick = () => openStudioForSituation(idx);
+                card.className = `bg-gradient-to-b ${cardThemes[idx]} border-4 rounded-2xl p-3.5 text-left flex flex-col justify-between btn-candy hover:scale-[1.02] transition`;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between w-full mb-1">
+                        <span class="bg-white/90 text-gray-800 text-xs px-2.5 py-0.5 rounded-full border">상황 ${sit.id}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full ${done ? 'bg-amber-300 text-amber-950 font-bold' : 'bg-white/80 text-gray-600'}">
+                            ${done ? '💎완성!' : '🎨꾸미기'}
+                        </span>
+                    </div>
+                    <div class="w-24 h-24 mx-auto my-1 rounded-2xl overflow-hidden border-2 border-white shadow-xs">
+                        ${generateFullCharacterSVG(sit.recommended, idx)}
+                    </div>
+                    <div class="mt-1">
+                        <div class="text-xs text-indigo-700">${sit.emotionCategory}</div>
+                        <div class="text-base sm:text-lg text-gray-900 leading-snug">${sit.shortTitle}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        /* --------------------------------------------------
+           7. STUDIO SCREEN LOGIC (STEP 1 QUIZ + STEP 2/3 DRESS-UP)
+        -------------------------------------------------- */
+        function openStudioForSituation(idx) {
+            currentSituationIdx = idx;
+            const sit = SITUATIONS[idx];
+            quizSolvedForCurrent = completedSituations[idx];
+
+            // Load recommended preset as initial starting point for this situation
+            currentCustom = { ...sit.recommended };
+
+            showScreen('studio');
+            renderStudioSituationHeader();
+            renderStudioQuiz();
+            renderLiveStudioCharacter();
+            switchStudioTab(currentStudioTab);
+            speakCurrentSituation();
+        }
+
+        function prevSituation() {
+            const next = (currentSituationIdx - 1 + SITUATIONS.length) % SITUATIONS.length;
+            openStudioForSituation(next);
+        }
+
+        function nextSituation() {
+            const next = (currentSituationIdx + 1) % SITUATIONS.length;
+            openStudioForSituation(next);
+        }
+
+        function speakCurrentSituation() {
+            const sit = SITUATIONS[currentSituationIdx];
+            speakText(`상황 ${sit.id}. ${sit.title}. ${sit.desc}`);
+        }
+
+        function renderStudioSituationHeader() {
+            const sit = SITUATIONS[currentSituationIdx];
+            document.getElementById('st-badge').textContent = `상황 ${sit.id} / 5 (${sit.emotionCategory})`;
+            document.getElementById('st-title').textContent = sit.title;
+            document.getElementById('st-icon').textContent = sit.icon;
+            document.getElementById('st-desc').textContent = sit.desc;
+        }
+
+        function renderStudioQuiz() {
+            const sit = SITUATIONS[currentSituationIdx];
+            document.getElementById('quiz-question').textContent = sit.quizQuestion;
+            const box = document.getElementById('quiz-options');
+            box.innerHTML = '';
+
+            sit.quizChoices.forEach((ch, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'p-2.5 sm:p-3 rounded-xl border-2 bg-white hover:bg-amber-50 border-amber-300 text-left text-sm sm:text-base btn-candy flex items-center justify-between gap-2';
+                btn.onclick = () => checkStudioQuizAnswer(ch.correct, btn);
+                btn.innerHTML = `
+                    <span>${ch.text}</span>
+                    <span class="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full shrink-0">선택</span>
+                `;
+                box.appendChild(btn);
+            });
+        }
+
+        function checkStudioQuizAnswer(isCorrect, btnEl) {
+            if (isCorrect) {
+                playSound('success');
+                launchConfetti();
+                completedSituations[currentSituationIdx] = true;
+                renderHeaderProgress();
+                btnEl.className = 'p-2.5 sm:p-3 rounded-xl border-2 bg-emerald-500 text-white border-emerald-700 text-left text-sm sm:text-base font-bold flex items-center justify-between gap-2';
+                btnEl.innerHTML = `<span>✅ 정답이에요! 친구의 마음을 정확히 알아주었어요! (+💎보석 획득)</span>`;
+                speakText('정답이에요! 친구의 마음을 정말 잘 이해했네요! 이제 오른쪽에서 친구의 표정과 몸짓을 멋지게 꾸며보세요!');
+            } else {
+                playSound('oops');
+                btnEl.className = 'p-2.5 sm:p-3 rounded-xl border-2 bg-rose-100 text-rose-800 border-rose-300 text-left text-sm sm:text-base flex items-center justify-between gap-2 animate-shake';
+                speakText('앗, 친구가 처한 상황을 다시 한번 생각하며 친구의 진짜 마음을 골라볼까요?');
+            }
+        }
+
+        function applyRecommendedPreset() {
+            playSound('pop', 4);
+            const sit = SITUATIONS[currentSituationIdx];
+            currentCustom = { ...sit.recommended };
+            renderLiveStudioCharacter();
+            switchStudioTab(currentStudioTab);
+            speakText('이 상황에 어울리는 친구의 표정과 몸짓으로 변신했어요!');
+        }
+
+        function randomizeCharacter() {
+            playSound('pop', 3);
+            const pick = arr => arr[Math.floor(Math.random() * arr.length)].id;
+            currentCustom.species = pick(SPECIES_LIST);
+            currentCustom.eyes = pick(EYES_LIST);
+            currentCustom.mouth = pick(MOUTH_LIST);
+            currentCustom.pose = pick(POSE_LIST);
+            currentCustom.item = pick(ITEM_LIST);
+            renderLiveStudioCharacter();
+            switchStudioTab(currentStudioTab);
+        }
+
+        function renderLiveStudioCharacter() {
+            const container = document.getElementById('studio-svg-container');
+            container.innerHTML = generateFullCharacterSVG(currentCustom, currentSituationIdx);
+
+            document.getElementById('studio-live-message').textContent = `"${currentCustom.message}"`;
+
+            // Render summary pills
+            const sp = findPart(SPECIES_LIST, currentCustom.species);
+            const ey = findPart(EYES_LIST, currentCustom.eyes);
+            const mo = findPart(MOUTH_LIST, currentCustom.mouth);
+            const po = findPart(POSE_LIST, currentCustom.pose);
+            const it = findPart(ITEM_LIST, currentCustom.item);
+
+            const pillsBox = document.getElementById('studio-summary-pills');
+            pillsBox.innerHTML = `
+                <span class="bg-pink-100 text-pink-900 text-xs px-2.5 py-1 rounded-full border border-pink-300">${sp.icon} ${sp.name}</span>
+                <span class="bg-sky-100 text-sky-900 text-xs px-2.5 py-1 rounded-full border border-sky-300">${ey.icon} ${ey.name}</span>
+                <span class="bg-amber-100 text-amber-900 text-xs px-2.5 py-1 rounded-full border border-amber-300">${mo.icon} ${mo.name}</span>
+                <span class="bg-purple-100 text-purple-900 text-xs px-2.5 py-1 rounded-full border border-purple-300">${po.icon} ${po.name}</span>
+                <span class="bg-emerald-100 text-emerald-900 text-xs px-2.5 py-1 rounded-full border border-emerald-300">${it.icon} ${it.name}</span>
+            `;
+        }
+
+        function switchStudioTab(tabName) {
+            currentStudioTab = tabName;
+            playSound('click');
+
+            const tabs = ['species', 'eyes', 'mouth', 'pose', 'item', 'message'];
+            tabs.forEach(t => {
+                const btn = document.getElementById('stab-' + t);
+                if (t === tabName) {
+                    btn.className = 'py-2 px-2 rounded-2xl border-2 text-sm sm:text-base btn-candy flex flex-col items-center gap-0.5 bg-pink-500 text-white border-pink-700 shadow';
+                } else {
+                    btn.className = 'py-2 px-2 rounded-2xl border-2 text-sm sm:text-base btn-candy flex flex-col items-center gap-0.5 bg-slate-50 text-gray-700 border-slate-300';
+                }
+            });
+
+            const panel = document.getElementById('studio-options-panel');
+            panel.innerHTML = '';
+
+            if (tabName === 'species') {
+                renderPartGrid(panel, SPECIES_LIST, 'species', '어떤 동물 친구의 마음을 표현해 볼까요?');
+            } else if (tabName === 'eyes') {
+                renderPartGrid(panel, EYES_LIST, 'eyes', '친구의 마음은 어떤 눈빛일까요? 눈과 눈썹을 골라보세요!');
+            } else if (tabName === 'mouth') {
+                renderPartGrid(panel, MOUTH_LIST, 'mouth', '친구의 입모양은 어떨까요? 입모양을 골라보세요!');
+            } else if (tabName === 'pose') {
+                renderPartGrid(panel, POSE_LIST, 'pose', '친구가 어떤 몸짓(포즈)을 하고 있을까요?');
+            } else if (tabName === 'item') {
+                renderPartGrid(panel, ITEM_LIST, 'item', '친구의 마음 기호나 내가 건네줄 도움 아이템을 골라보세요!');
+            } else if (tabName === 'message') {
+                renderMessageTab(panel);
+            }
+        }
+
+        function renderPartGrid(panel, list, key, titleText) {
+            const header = document.createElement('div');
+            header.className = 'text-sm sm:text-base text-indigo-950 mb-2.5';
+            header.textContent = `👇 ${titleText}`;
+            panel.appendChild(header);
+
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-2 sm:grid-cols-3 gap-2.5';
+
+            list.forEach(item => {
+                const isSelected = currentCustom[key] === item.id;
+                const btn = document.createElement('button');
+                btn.className = `p-3 rounded-2xl border-2 bg-white border-slate-300 text-left flex items-center gap-3 btn-candy ${isSelected ? 'part-btn-active' : ''}`;
+                btn.onclick = () => {
+                    currentCustom[key] = item.id;
+                    playSound('pop', 2);
+                    renderLiveStudioCharacter();
+                    switchStudioTab(currentStudioTab);
+                };
+                btn.innerHTML = `
+                    <span class="text-3xl sm:text-4xl bg-slate-50 p-2 rounded-xl border border-slate-200 shrink-0">${item.icon}</span>
+                    <div>
+                        <div class="text-base sm:text-lg text-gray-900 leading-tight">${item.name}</div>
+                        ${item.tag ? `<div class="font-body text-xs text-gray-500 mt-0.5">${item.tag}</div>` : ''}
+                    </div>
+                `;
+                grid.appendChild(btn);
+            });
+
+            panel.appendChild(grid);
+        }
+
+        function renderMessageTab(panel) {
+            const sit = SITUATIONS[currentSituationIdx];
+            panel.innerHTML = `
+                <div class="space-y-3">
+                    <div class="text-sm sm:text-base text-indigo-950">
+                        💬 친구의 마음을 이해하며 건네는 <strong>따뜻한 말 한마디</strong>를 고르거나 직접 적어보세요!
+                    </div>
+                    <div class="space-y-2" id="preset-msg-list"></div>
+                    <div class="pt-1">
+                        <label class="block text-xs sm:text-sm text-gray-600 mb-1">✏️ 내가 직접 따뜻한 말 적기:</label>
+                        <input id="custom-msg-input" type="text" maxlength="42" value="${currentCustom.message}"
+                            placeholder="친구에게 해주고 싶은 고운 말을 적어보세요!"
+                            oninput="currentCustom.message = this.value; renderLiveStudioCharacter();"
+                            class="w-full px-4 py-2.5 rounded-xl border-2 border-pink-300 text-base sm:text-lg bg-white focus:outline-none focus:border-pink-500">
+                    </div>
+                </div>
+            `;
+
+            const listEl = panel.querySelector('#preset-msg-list');
+            sit.presetMessages.forEach(msg => {
+                const b = document.createElement('button');
+                const active = currentCustom.message === msg;
+                b.className = `w-full text-left px-3.5 py-2.5 rounded-xl border-2 text-sm sm:text-base btn-candy ${active ? 'part-btn-active' : 'bg-white border-slate-300'}`;
+                b.onclick = () => {
+                    currentCustom.message = msg;
+                    playSound('pop', 2);
+                    renderLiveStudioCharacter();
+                    switchStudioTab('message');
+                    speakText(msg);
+                };
+                b.innerHTML = `💖 "${msg}"`;
+                listEl.appendChild(b);
+            });
+        }
+
+        function syncStudentInfo() {
+            studentInfo.classNum = document.getElementById('input-class').value.trim() || '1';
+            studentInfo.studentNum = document.getElementById('input-number').value.trim();
+            studentInfo.studentName = document.getElementById('input-name').value.trim();
+        }
+
+        /* --------------------------------------------------
+           8. PADLET PHOTO BOOTH & PNG IMAGE DOWNLOADER
+        -------------------------------------------------- */
+        function openPhotoStudioModal() {
+            syncStudentInfo();
+            completedSituations[currentSituationIdx] = true;
+            renderHeaderProgress();
+
+            // Camera shutter sound & flash effect
+            playSound('shutter');
+            const flash = document.getElementById('camera-flash');
+            flash.classList.remove('hidden', 'shutter-flash');
+            void flash.offsetWidth;
+            flash.classList.add('shutter-flash');
+            setTimeout(() => flash.classList.add('hidden'), 480);
+
+            launchConfetti();
+            showScreen('photobooth');
+            populatePadletCardDOM();
+            speakText('찰칵! 패들렛에 올릴 멋진 마음 카드가 완성되었어요! 이미지로 저장하거나 스크린샷을 찍어 패들렛에 올려보세요!');
+        }
+
+        function populatePadletCardDOM() {
+            const sit = SITUATIONS[currentSituationIdx];
+            const sp = findPart(SPECIES_LIST, currentCustom.species);
+            const ey = findPart(EYES_LIST, currentCustom.eyes);
+            const mo = findPart(MOUTH_LIST, currentCustom.mouth);
+            const po = findPart(POSE_LIST, currentCustom.pose);
+            const it = findPart(ITEM_LIST, currentCustom.item);
+
+            document.getElementById('card-sit-badge').textContent = `상황 ${sit.id} · ${sit.emotionCategory}`;
+
+            const numPart = studentInfo.studentNum ? ` ${studentInfo.studentNum}번` : '';
+            const namePart = studentInfo.studentName || '멋진 친구';
+            document.getElementById('card-student-badge').textContent = `🏫 1학년 ${studentInfo.classNum}반${numPart} ${namePart}`;
+
+            document.getElementById('card-svg-holder').innerHTML = generateFullCharacterSVG(currentCustom, currentSituationIdx);
+            document.getElementById('card-char-caption').textContent = `내가 꾸민 ${sp.name}의 마음 모습`;
+
+            document.getElementById('card-sit-title').textContent = sit.title;
+            document.getElementById('card-sit-desc').textContent = sit.desc;
+
+            document.getElementById('card-tags-box').innerHTML = `
+                <span class="bg-white text-sky-900 text-xs sm:text-sm px-3 py-1 rounded-full border border-amber-300 shadow-2xs">${ey.icon} ${ey.name}</span>
+                <span class="bg-white text-amber-900 text-xs sm:text-sm px-3 py-1 rounded-full border border-amber-300 shadow-2xs">${mo.icon} ${mo.name}</span>
+                <span class="bg-white text-purple-900 text-xs sm:text-sm px-3 py-1 rounded-full border border-amber-300 shadow-2xs">${po.icon} ${po.name}</span>
+                <span class="bg-white text-emerald-900 text-xs sm:text-sm px-3 py-1 rounded-full border border-amber-300 shadow-2xs">${it.icon} ${it.name}</span>
+            `;
+
+            document.getElementById('card-warm-message').textContent = `"${currentCustom.message}"`;
+        }
+
+        function toggleCleanScreenshotMode(enable) {
+            playSound('click');
+            const header = document.getElementById('app-header');
+            const footer = document.getElementById('app-footer');
+            const controls = document.getElementById('photobooth-controls');
+            const bottomNav = document.getElementById('photobooth-bottom-nav');
+            const cleanBanner = document.getElementById('clean-mode-banner');
+
+            if (enable) {
+                header.classList.add('hidden');
+                footer.classList.add('hidden');
+                controls.classList.add('hidden');
+                bottomNav.classList.add('hidden');
+                cleanBanner.classList.remove('hidden');
+            } else {
+                header.classList.remove('hidden');
+                footer.classList.remove('hidden');
+                controls.classList.remove('hidden');
+                bottomNav.classList.remove('hidden');
+                cleanBanner.classList.add('hidden');
+            }
+        }
+
+        function goNextSituationFromBooth() {
+            toggleCleanScreenshotMode(false);
+            const nextIdx = (currentSituationIdx + 1) % SITUATIONS.length;
+            openStudioForSituation(nextIdx);
+        }
+
+        // High-Resolution Canvas Export to PNG file for direct Padlet Upload
+        function downloadPadletCardPNG() {
+            playSound('shutter');
+            const canvas = document.getElementById('export-canvas');
+            const ctx = canvas.getContext('2d');
+            const sit = SITUATIONS[currentSituationIdx];
+            const sp = findPart(SPECIES_LIST, currentCustom.species);
+            const ey = findPart(EYES_LIST, currentCustom.eyes);
+            const mo = findPart(MOUTH_LIST, currentCustom.mouth);
+            const po = findPart(POSE_LIST, currentCustom.pose);
+            const it = findPart(ITEM_LIST, currentCustom.item);
+
+            const svgString = generateFullCharacterSVG(currentCustom, currentSituationIdx);
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+
+            img.onload = function () {
+                // 1. Card Background
+                const grad = ctx.createLinearGradient(0, 0, 1200, 820);
+                grad.addColorStop(0, '#FFFDF0');
+                grad.addColorStop(0.5, '#FFFFFF');
+                grad.addColorStop(1, '#FFF0F6');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 1200, 820);
+
+                // Outer Border
+                ctx.strokeStyle = '#FBBF24';
+                ctx.lineWidth = 18;
+                ctx.strokeRect(20, 20, 1160, 780);
+                ctx.strokeStyle = '#F472B6';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(36, 36, 1128, 748);
+
+                // 2. Top Header Banner
+                ctx.fillStyle = '#F43F5E';
+                ctx.beginPath();
+                ctx.roundRect(65, 62, 340, 52, 26);
+                ctx.fill();
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 26px Jua, sans-serif';
+                ctx.fillText('★ 우리 마음을 잇는 약속 ★', 92, 97);
+
+                const numPart = studentInfo.studentNum ? ` ${studentInfo.studentNum}번` : '';
+                const namePart = studentInfo.studentName || '멋진 친구';
+                const studentLabel = `🏫 1학년 ${studentInfo.classNum}반${numPart} ${namePart}`;
+
+                ctx.fillStyle = '#E0E7FF';
+                ctx.beginPath();
+                ctx.roundRect(760, 62, 375, 52, 26);
+                ctx.fill();
+                ctx.fillStyle = '#1E1B4B';
+                ctx.font = 'bold 26px Jua, sans-serif';
+                ctx.fillText(studentLabel, 788, 97);
+
+                // 3. Draw Character SVG on Left
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(70, 150, 420, 420, 36);
+                ctx.clip();
+                ctx.drawImage(img, 70, 150, 420, 420);
+                ctx.restore();
+
+                ctx.strokeStyle = '#F9A8D4';
+                ctx.lineWidth = 8;
+                ctx.beginPath();
+                ctx.roundRect(70, 150, 420, 420, 36);
+                ctx.stroke();
+
+                ctx.fillStyle = '#BE185D';
+                ctx.font = 'bold 25px Jua, sans-serif';
+                ctx.fillText(`🎨 내가 꾸민 ${sp.name}의 모습`, 125, 615);
+
+                // 4. Right Column Boxes
+                // Box A: Situation
+                ctx.fillStyle = '#F0F9FF';
+                ctx.beginPath();
+                ctx.roundRect(530, 150, 600, 155, 24);
+                ctx.fill();
+                ctx.strokeStyle = '#BAE6FD';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                ctx.fillStyle = '#0369A1';
+                ctx.font = 'bold 22px Jua, sans-serif';
+                ctx.fillText(`📖 상황 ${sit.id} (${sit.emotionCategory})`, 558, 190);
+                ctx.fillStyle = '#0C4A6E';
+                ctx.font = 'bold 30px Jua, sans-serif';
+                ctx.fillText(sit.title, 558, 232);
+                ctx.fillStyle = '#334155';
+                ctx.font = 'bold 20px sans-serif';
+                ctx.fillText(sit.desc.slice(0, 34), 558, 268);
+                if (sit.desc.length > 34) {
+                    ctx.fillText(sit.desc.slice(34), 558, 294);
+                }
+
+                // Box B: Chosen Expression & Body Language
+                ctx.fillStyle = '#FFFBEB';
+                ctx.beginPath();
+                ctx.roundRect(530, 325, 600, 155, 24);
+                ctx.fill();
+                ctx.strokeStyle = '#FDE68A';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                ctx.fillStyle = '#92400E';
+                ctx.font = 'bold 22px Jua, sans-serif';
+                ctx.fillText('🔍 내가 알아본 친구의 표정 · 몸짓 · 마음 아이템', 558, 365);
+
+                ctx.fillStyle = '#1F2937';
+                ctx.font = 'bold 24px Jua, sans-serif';
+                ctx.fillText(`• 눈빛: ${ey.icon} ${ey.name}   • 입모양: ${mo.icon} ${mo.name}`, 558, 410);
+                ctx.fillText(`• 몸짓: ${po.icon} ${po.name}   • 소품: ${it.icon} ${it.name}`, 558, 452);
+
+                // Box C: Warm Message
+                ctx.fillStyle = '#FFF1F2';
+                ctx.beginPath();
+                ctx.roundRect(530, 500, 600, 175, 24);
+                ctx.fill();
+                ctx.strokeStyle = '#FDA4AF';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                ctx.fillStyle = '#BE123C';
+                ctx.font = 'bold 22px Jua, sans-serif';
+                ctx.fillText('💌 친구에게 건네는 나의 따뜻한 말 한마디', 558, 542);
+
+                ctx.fillStyle = '#881337';
+                ctx.font = 'bold 30px Jua, sans-serif';
+                const msg = `"${currentCustom.message}"`;
+                ctx.fillText(msg.slice(0, 22), 558, 592);
+                if (msg.length > 22) {
+                    ctx.fillText(msg.slice(22), 558, 635);
+                }
+
+                // Footer
+                ctx.fillStyle = '#64748B';
+                ctx.font = 'bold 22px Jua, sans-serif';
+                ctx.fillText('💖 친구의 마음을 이해하고 따뜻한 말과 행동으로 마음을 이어요!', 70, 742);
+
+                URL.revokeObjectURL(url);
+
+                const link = document.createElement('a');
+                link.download = `친구의마음카드_상황${sit.id}_${namePart}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+            img.src = url;
+        }
+
+        /* --------------------------------------------------
+           9. BONUS MINI-GAME: '친구 마음 캐치 대소동!'
+        -------------------------------------------------- */
+        const MG_GOOD_TARGETS = [
+            { emoji: '🧻', label: '손수건 건네기!' },
+            { emoji: '🩹', label: '반창고 붙여주기!' },
+            { emoji: '🤝', label: '먼저 손 내밀기!' },
+            { emoji: '🍎', label: '진심으로 사과하기!' },
+            { emoji: '🧱', label: '블록 같이 쌓기!' },
+            { emoji: '💖', label: '따뜻한 위로 한마디!' }
+        ];
+        const MG_BAD_TARGETS = [
+            { emoji: '😈', label: '별명으로 놀리기!' },
+            { emoji: '😤', label: '새치기하기!' },
+            { emoji: '💥', label: '친구 밀치기!' },
+            { emoji: '🗯️', label: '소리 지르기!' }
+        ];
+        const MG_MISSIONS = [
+            { icon: '🏰💥', text: '블록 성이 무너져 속상한 친구! ➔ 따뜻한 도움 카드를 터치!' },
+            { icon: '🌱👉👈', text: '혼자 서서 부끄러워하는 친구! ➔ 먼저 다가가는 카드를 터치!' },
+            { icon: '🥛💦', text: '우유를 쏟아 당황한 친구! ➔ 위로와 도움 카드를 터치!' },
+            { icon: '🩹💖', text: '넘어져서 무릎이 아픈 친구! ➔ 치료와 배려 카드를 터치!' }
+        ];
+
+        let mgRunning = false;
+        let mgScore = 0;
+        let mgCombo = 0;
+        let mgTime = 30;
+        let mgTimerId = null;
+        let mgSpawnId = null;
+        let mgCells = [];
+
+        function openMiniGameScreen() {
+            if (getCompletedCount() < 1) {
+                playSound('oops');
+                speakText('먼저 5가지 상황 중 1개 이상 친구의 마음을 꾸미고 카드를 완성하면 오락실이 열려요! 선생님 모드를 누르면 바로 열 수도 있어요.');
+                openStudioForSituation(0);
+                return;
+            }
+            showScreen('minigame');
+            buildMiniGameGrid();
+            document.getElementById('mg-overlay').classList.remove('hidden');
+        }
+
+        function buildMiniGameGrid() {
+            const grid = document.getElementById('mg-grid');
+            grid.innerHTML = '';
+            mgCells = [];
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'relative h-24 sm:h-28 bg-slate-800/90 rounded-2xl border-2 border-indigo-400/40 flex items-center justify-center overflow-hidden shadow-inner';
+                cell.innerHTML = `
+                    <button id="mg-btn-${i}" onpointerdown="tapMiniGameCell(${i})" class="w-full h-full flex flex-col items-center justify-center transition-all duration-150 transform translate-y-8 opacity-0 pointer-events-none">
+                        <span id="mg-emoji-${i}" class="text-3xl sm:text-4xl">💖</span>
+                        <span id="mg-label-${i}" class="text-xs sm:text-sm px-2.5 py-0.5 rounded-full mt-1 font-bold">손 내밀기</span>
+                    </button>
+                `;
+                grid.appendChild(cell);
+                mgCells.push({ active: false, isGood: true, timeout: null });
+            }
+        }
+
+        function startMiniGame() {
+            playSound('success');
+            document.getElementById('mg-overlay').classList.add('hidden');
+            buildMiniGameGrid();
+            mgScore = 0;
+            mgCombo = 0;
+            mgTime = 30;
+            mgRunning = true;
+            updateMiniGameHUD();
+            startBGM();
+
+            mgTimerId = setInterval(() => {
+                if (!mgRunning) return;
+                mgTime--;
+                if (mgTime % 7 === 0) {
+                    const m = MG_MISSIONS[Math.floor(Math.random() * MG_MISSIONS.length)];
+                    document.getElementById('mg-mission-icon').textContent = m.icon;
+                    document.getElementById('mg-mission-text').textContent = m.text;
+                }
+                updateMiniGameHUD();
+                if (mgTime <= 0) finishMiniGame();
+            }, 1000);
+
+            mgSpawnId = setInterval(() => {
+                if (!mgRunning) return;
+                spawnMiniGameTarget();
+                if (Math.random() < 0.45) spawnMiniGameTarget();
+            }, 520);
+        }
+
+        function spawnMiniGameTarget() {
+            const free = mgCells.map((c, idx) => (!c.active ? idx : -1)).filter(i => i !== -1);
+            if (free.length === 0) return;
+            const idx = free[Math.floor(Math.random() * free.length)];
+            const cell = mgCells[idx];
+            const isGood = Math.random() < 0.68;
+            cell.active = true;
+            cell.isGood = isGood;
+
+            const btn = document.getElementById(`mg-btn-${idx}`);
+            const emoji = document.getElementById(`mg-emoji-${idx}`);
+            const label = document.getElementById(`mg-label-${idx}`);
+
+            if (isGood) {
+                const item = MG_GOOD_TARGETS[Math.floor(Math.random() * MG_GOOD_TARGETS.length)];
+                emoji.textContent = item.emoji;
+                label.textContent = item.label;
+                label.className = 'text-xs sm:text-sm bg-emerald-400 text-slate-950 px-2.5 py-0.5 rounded-full mt-1 font-bold shadow';
+            } else {
+                const item = MG_BAD_TARGETS[Math.floor(Math.random() * MG_BAD_TARGETS.length)];
+                emoji.textContent = item.emoji;
+                label.textContent = item.label;
+                label.className = 'text-xs sm:text-sm bg-rose-600 text-white px-2.5 py-0.5 rounded-full mt-1 font-bold shadow';
+            }
+
+            btn.className = 'w-full h-full flex flex-col items-center justify-center transition-all duration-150 transform translate-y-0 opacity-100 pointer-events-auto';
+
+            cell.timeout = setTimeout(() => hideMiniGameCell(idx), 950);
+        }
+
+        function hideMiniGameCell(idx) {
+            const cell = mgCells[idx];
+            if (!cell) return;
+            cell.active = false;
+            const btn = document.getElementById(`mg-btn-${idx}`);
+            if (btn) {
+                btn.className = 'w-full h-full flex flex-col items-center justify-center transition-all duration-150 transform translate-y-8 opacity-0 pointer-events-none';
+            }
+        }
+
+        function tapMiniGameCell(idx) {
+            if (!mgRunning) return;
+            const cell = mgCells[idx];
+            if (!cell || !cell.active) return;
+            if (cell.timeout) clearTimeout(cell.timeout);
+            cell.active = false;
+
+            const emoji = document.getElementById(`mg-emoji-${idx}`);
+            const label = document.getElementById(`mg-label-${idx}`);
+
+            if (cell.isGood) {
+                mgCombo++;
+                const fever = mgCombo >= 6;
+                const gain = fever ? 40 : 20;
+                mgScore += gain;
+                playSound('pop', mgCombo);
+                emoji.textContent = '🥰';
+                label.textContent = `+${gain}점 공감최고!💖`;
+                label.className = 'text-xs sm:text-sm bg-yellow-300 text-amber-950 px-2.5 py-0.5 rounded-full mt-1 font-bold';
+            } else {
+                mgCombo = 0;
+                mgScore = Math.max(0, mgScore - 15);
+                playSound('oops');
+                const cab = document.getElementById('game-cabinet');
+                cab.classList.remove('animate-shake');
+                void cab.offsetWidth;
+                cab.classList.add('animate-shake');
+                emoji.textContent = '💦';
+                label.textContent = '나쁜행동 금지! -15';
+                label.className = 'text-xs sm:text-sm bg-gray-900 text-rose-300 px-2.5 py-0.5 rounded-full mt-1';
+            }
+
+            updateMiniGameHUD();
+            setTimeout(() => hideMiniGameCell(idx), 280);
+        }
+
+        function updateMiniGameHUD() {
+            document.getElementById('mg-score').textContent = mgScore;
+            document.getElementById('mg-combo').textContent = mgCombo;
+            document.getElementById('mg-timer').textContent = mgTime;
+            const pill = document.getElementById('mg-fever-pill');
+            if (mgCombo >= 6) pill.classList.remove('hidden');
+            else pill.classList.add('hidden');
+        }
+
+        function stopMiniGame() {
+            mgRunning = false;
+            stopBGM();
+            if (mgTimerId) clearInterval(mgTimerId);
+            if (mgSpawnId) clearInterval(mgSpawnId);
+        }
+
+        function finishMiniGame() {
+            stopMiniGame();
+            playSound('success');
+            launchConfetti();
+            const ov = document.getElementById('mg-overlay');
+            ov.classList.remove('hidden');
+            document.getElementById('mg-ov-icon').textContent = '🏆';
+            document.getElementById('mg-ov-title').textContent = `최종 점수: ${mgScore}점!`;
+            document.getElementById('mg-ov-desc').innerHTML =
+                `친구의 마음을 빠르게 알아채고 따뜻하게 도와주는 <strong>최고의 마음 박사</strong>예요!<br>다시 한 번 신기록에 도전해 볼까요?`;
+            speakText(`와아! ${mgScore}점을 기록했어요! 친구의 마음을 정말 잘 알아주는 멋진 친구예요!`);
+        }
+
+        /* --------------------------------------------------
+           10. INITIALIZE ON WINDOW LOAD
+        -------------------------------------------------- */
+        window.onload = function () {
+            document.getElementById('hero-char-left').innerHTML = generateFullCharacterSVG(SITUATIONS[0].recommended, 0);
+            document.getElementById('hero-char-right').innerHTML = generateFullCharacterSVG(SITUATIONS[4].recommended, 4);
+            renderHeaderProgress();
+            renderHomeSituationCards();
+        };
+    </script>
+</body>
+</html>
